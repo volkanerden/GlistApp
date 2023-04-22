@@ -29,8 +29,7 @@ add_executable(${APP_NAME}
 				${APP_DIR}/src/main.cpp
 				${APP_DIR}/src/gApp.cpp
 				${APP_DIR}/src/GameCanvas.cpp
-				${APP_DIR}/src/FrameTimer.cpp
-				${APP_DIR}/src/GameStart.cpp)
+				${APP_DIR}/src/FrameTimer.cpp)
 
 
 include_directories(${APP_NAME} PRIVATE
