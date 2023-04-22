@@ -102,8 +102,6 @@ private:
 	float velocityx, velocityy;
 	float directionx, directiony;
 
-
-
 	float enemy_worldposx, enemy_worldposy;
 	float chasex, chasey;
 
