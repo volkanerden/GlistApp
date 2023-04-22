@@ -1,8 +1,8 @@
 #include "GameCanvas.h"
 
 /*TODO
- * Fix -Play Again
  * Fix - enemy draw blackscreen
+ * Fix - enemies always standing on left and stacks up on top
  * Loading Screen
  */
 
@@ -36,8 +36,8 @@ void GameCanvas::draw() {
 		drawEnemy();
 		drawGUI();
 	}
-	//else
-		//gameover.draw(0, 0);
+	else
+		gameover.draw(0, 0);
 //	gLogi() << enemies.size();
 }
 void GameCanvas::keyPressed(int key) {
@@ -79,11 +79,15 @@ void GameCanvas::mousePressed(int x, int y, int button) {
 }
 
 void GameCanvas::mouseReleased(int x, int y, int button) {
-/*	gLogi("GameCanvas") << "mouseReleased" << ", button:" << button;
+//	gLogi("GameCanvas") << "mouseReleased" << ", button:" << button;
 	if(x > 0 && x < getWidth() && y > 0 && y < getHeight()) {
-		player.health = 100;
+		std::vector<Enemy>& enemies_ = enemies;
+		for (int i = 0; i < enemies_.size(); i++) {
+		enemies_.clear();
+		loadVariables();
 		isGameOver = false;
-	}*/
+		}
+	}
 }
 
 void GameCanvas::mouseScrolled(int x, int y) {
@@ -171,17 +175,13 @@ void GameCanvas::loadAssets() {
 	}
 
 //	Load Enemy Animations
-	for(int i = 0; i < 11; i++) {
-		enemy_idle_right[i].loadImage("enemy/Idle/right/tile0" + gToStr(i) + ".png");
-		//enemy_idle_left[i].loadImage("enemy/Idle/left/tile0" + gToStr(i) + ".png");
-	}
 	for(int i = 0; i < ENEMYMOVE_FRAME; i++) {
 		enemy_move_right[i].loadImage("enemy/Walk/right/tile0" + gToStr(i) + ".png");
 		enemy_move_left[i].loadImage("enemy/Walk/left/tile0" + gToStr(i) + ".png");
 	}
 	for(int i = 0; i < ENEMYATTACK_FRAME; i++) {
 		enemy_attack_right[i].loadImage("enemy/Attack/right/tile0" + gToStr(i) + ".png");
-		//enemy_attack_left[i].loadImage("enemy/Attack/left/tile0" + gToStr(i) + ".png");
+		enemy_attack_left[i].loadImage("enemy/Attack/left/tile0" + gToStr(i) + ".png");
 	}
 	for(int i = 0; i < ENEMYDIE_FRAME; i++) {
 		enemy_dead[i].loadImage("enemy/Dead/tile0" + gToStr(i) + ".png");
@@ -222,8 +222,8 @@ void GameCanvas::loadVariables() {
 
 	enemy.x = gRandom(3000);
 	enemy.y = gRandom(3000);
-	enemy.w = enemy_idle_right[0].getWidth() * 3;
-	enemy.h = enemy_idle_right[0].getHeight() * 3;
+	enemy.w = enemy_move_right[0].getWidth() * 3;
+	enemy.h = enemy_move_right[0].getHeight() * 3;
 	enemy.speed = 2.0f;
 	enemy.health = 100.0f;
 	enemy.damage = 0.3f;
@@ -351,15 +351,19 @@ void GameCanvas::updateAnimations() {
 void GameCanvas::updateCollisionCheck() {
 //	Check Prop Collision
 	for(int i = 0; i < PROP_COUNT; i++) {
-	if(checkCollision(300, 300, 380, 400,
+		if(checkCollision(300, 300, 380, 400,
 			propx[i] + mapposx + indent, propy[i] + mapposy + indent,
 			propx[i] + mapposx + props[i].getWidth() * scale - indent,
 			propy[i] + mapposy + props[i].getHeight() * scale - indent)) stopMoving();
 	}
-//Check Enemy Collision
-	if (!enemy.isDead && checkCollision(300, 300, 380, 400,
+	std::vector<Enemy>& enemy_ = enemies;
+	for(int i = 0; i < enemy_.size(); i++) {
+		Enemy& enemy = enemy_[i];
+//		Check Enemy Collision
+		if (!enemy.isDead && checkCollision(300, 300, 380, 400,
 			enemy.x + mapposx +50, enemy.y + mapposy +100,
 			enemy.w + enemy.x + mapposx +50 -30, enemy.h + enemy.y + mapposy +100 +10)) stopMoving();
+	}
 }
 void GameCanvas::updateEnemy() {
 	aiSpawnCounter++;
@@ -372,7 +376,7 @@ void GameCanvas::updateEnemy() {
 		Enemy& enemy = enemy_[i];
 
 //	Enemy Movement
-	chasex = player.x - (enemy.x + mapposx);
+	chasex = player.x - (enemy.x + mapposx) + enemy.w + 50;
 	chasey = player.y - (enemy.y + mapposy);
 	chasex = Vec2xNormalize(chasex, chasey);
 	chasey = Vec2yNormalize(chasex, chasey);
